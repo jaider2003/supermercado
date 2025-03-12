@@ -1,0 +1,157 @@
+-- 1. Procedimiento para agregar un nuevo producto
+DELIMITER $$
+CREATE PROCEDURE AgregarProducto(
+    IN p_nombre VARCHAR(100),
+    IN p_categoria VARCHAR(100),
+    IN p_precio DECIMAL(10,2),
+    IN p_stock INT
+)
+BEGIN
+    INSERT INTO Productos (nombre, categoria, precio, stock)
+    VALUES (p_nombre, p_categoria, p_precio, p_stock);
+END $$
+DELIMITER ;
+
+CALL AgregarProducto('Arroz', 'Alimentos', 2.50, 100);
+
+
+
+-- 2. Procedimiento para registrar una venta
+DELIMITER $$
+CREATE PROCEDURE RegistrarVenta(
+    IN p_id_cliente INT,
+    IN p_id_producto INT,
+    IN p_cantidad INT,
+    IN p_total DECIMAL(10,2)
+)
+BEGIN
+    INSERT INTO Ventas (id_cliente, id_producto, cantidad, total, fecha_venta)
+    VALUES (p_id_cliente, p_id_producto, p_cantidad, p_total, NOW());
+END $$
+DELIMITER ;
+
+CALL RegistrarVenta(1, 3, 2, 5.00);
+
+
+DELIMITER $$
+CREATE PROCEDURE ProductosMasVendidos()
+BEGIN
+    SELECT P.nombre, SUM(V.cantidad) AS total_vendido
+    FROM Ventas V
+    INNER JOIN Productos P ON V.id_producto = P.id  -- Usamos 'id' en lugar de 'id_producto'
+    GROUP BY P.nombre
+    ORDER BY total_vendido DESC
+    LIMIT 10;
+END $$
+DELIMITER ;
+
+CALL ProductosMasVendidos();
+
+
+
+-- 4. Procedimiento para generar un reporte de ventas por fecha
+DELIMITER $$
+CREATE PROCEDURE ReporteVentasPorFecha(
+    IN p_fecha_inicio DATE,
+    IN p_fecha_fin DATE
+)
+BEGIN
+    SELECT * FROM Ventas 
+    WHERE fecha_venta BETWEEN p_fecha_inicio AND p_fecha_fin;
+END $$
+DELIMITER ;
+
+CALL ReporteVentasPorFecha('2025-03-01', '2025-03-10');
+
+
+DELIMITER $$
+
+CREATE PROCEDURE EliminarProducto(IN p_id INT)
+BEGIN
+    DELETE FROM Productos WHERE id = p_id;
+END$$
+
+DELIMITER ;
+
+CALL EliminarProducto(3);
+
+DELIMITER $$
+
+-- Procedimiento para actualizar el stock de un producto
+DELIMITER $$
+
+CREATE PROCEDURE ActualizarStock(IN p_id INT, IN p_nuevo_stock INT)
+BEGIN
+    UPDATE Productos SET stock = p_nuevo_stock WHERE id = p_id;
+END$$
+
+DELIMITER ;
+
+CALL ActualizarStock(1, 50);
+
+
+-- Procedimiento para obtener detalles de una venta
+CREATE PROCEDURE ObtenerDetalleVenta(IN p_id_venta INT)
+BEGIN
+    SELECT * FROM Ventas WHERE id_venta = p_id_venta;
+END$$
+
+CALL ObtenerDetalleVenta(10);
+
+-- Procedimiento para obtener clientes frecuentes
+CREATE PROCEDURE ClientesFrecuentes()
+BEGIN
+    SELECT id_cliente, COUNT(*) AS compras_realizadas 
+    FROM Ventas 
+    GROUP BY id_cliente 
+    ORDER BY compras_realizadas DESC 
+    LIMIT 10;
+END$$
+
+CALL ClientesFrecuentes();
+
+
+DELIMITER $$
+
+CREATE PROCEDURE ActualizarPrecioProducto(IN p_id INT, IN p_nuevo_precio DECIMAL(10,2))
+BEGIN
+    UPDATE Productos SET precio = p_nuevo_precio WHERE id = p_id;
+END$$
+
+DELIMITER ;
+
+
+CALL ActualizarPrecioProducto(2, 19.99);
+
+-- Procedimiento para generar reporte de ingresos mensuales
+DELIMITER $$
+
+CREATE PROCEDURE ReporteIngresosMensuales(IN p_mes INT, IN p_anio INT)
+BEGIN
+    SELECT SUM(total) AS ingresos_totales
+    FROM Ventas
+    WHERE MONTH(fecha_venta) = p_mes AND YEAR(fecha_venta) = p_anio;
+END$$
+
+DELIMITER ;
+
+CALL ReporteIngresosMensuales(3, 2025);
+
+-- Procedimiento para agregar un nuevo cliente
+CREATE PROCEDURE AgregarCliente(IN p_nombre VARCHAR(100), IN p_apellido VARCHAR(100), IN p_direccion VARCHAR(255))
+BEGIN
+    INSERT INTO Clientes (nombre, apellido, direccion) VALUES (p_nombre, p_apellido, p_direccion);
+END$$
+
+CALL AgregarCliente('Carlos', 'Gómez', 'Calle 123, Ciudad');
+
+-- Procedimiento para listar productos por categoría
+CREATE PROCEDURE ProductosPorCategoria(IN p_categoria VARCHAR(100))
+BEGIN
+    SELECT * FROM Productos WHERE categoria = p_categoria;
+END$$
+
+DELIMITER ;
+
+CALL ProductosPorCategoria('Lácteos');
+
